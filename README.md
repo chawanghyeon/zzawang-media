@@ -38,7 +38,7 @@
 - Faiss (벡터 검색)
 - SQLAlchemy (ORM)
 - Whisper v3
-- google/embeddinggemma-300m
+- sentence-transformers/all-MiniLM-L6-v2
 - Docker / Docker Compose
 - Pydantic / Uvicorn
 - difflib (Levenshtein 유사도)
@@ -92,16 +92,83 @@ speechlab/
 
 ## 7. 실행 방법
 
+### Docker를 사용한 실행 (권장)
+
 ```bash
 # 1. 레포지토리 클론
 git clone https://github.com/chawanghyeon/zzawang-media.git
 cd zzawang-media
 
-# 2. Docker 실행
-docker-compose up --build
+# 2. 환경 변수 설정 (선택사항)
+cp .env.example .env
+# .env 파일을 수정하여 설정 변경 가능
 
-# 3. 접속 확인
+# 3. Docker Compose로 실행
+docker-compose up -d --build
+
+# 4. 로그 확인
+docker-compose logs -f
+
+# 5. 서비스 중지
+docker-compose down
+
+# 6. 접속 확인
+http://localhost:8000          # 데모 페이지
+http://localhost:8000/docs     # API 문서
+```
+
+### 🎤 데모 페이지 사용하기
+
+서버 실행 후 브라우저에서 `http://localhost:8000` 접속
+
+1. **문장 등록**: 연습하고 싶은 문장을 입력하고 등록
+2. **문장 선택**: 등록된 문장 중 하나를 클릭하여 선택
+3. **음성 녹음**: "녹음 시작" 버튼을 눌러 문장을 읽고, "녹음 중지"로 종료
+4. **평가 받기**: 녹음이 완료되면 "평가 받기" 버튼으로 결과 확인
+5. **통계 확인**: "통계 불러오기"로 전체 통계 조회
+
+```
+
+### 로컬 개발 환경 실행
+
+```bash
+# 1. 가상환경 생성 및 활성화
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+
+# 2. 패키지 설치
+pip install -r requirements.txt
+
+# 3. 환경 변수 설정
+cp .env.example .env
+
+# 4. 서버 실행
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+# 5. 접속 확인
 http://localhost:8000/docs
+```
+
+### API 사용 예시
+
+```bash
+# 문장 등록
+curl -X POST "http://localhost:8000/api/v1/script" \
+  -H "Content-Type: application/json" \
+  -d '{"text": "안녕하세요, 반갑습니다."}'
+
+# 음성 제출
+curl -X POST "http://localhost:8000/api/v1/submit" \
+  -F "script_id=1" \
+  -F "audio=@audio.wav"
+
+# 피드백 조회
+curl "http://localhost:8000/api/v1/feedback/1"
+
+# 관리자 대시보드
+curl "http://localhost:8000/api/v1/admin/dashboard"
+```
+
 ````
 
 ## 8. 향후 개선 방향
