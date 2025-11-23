@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zzawang Media - 음성 학습 평가</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .step {
+            background: white;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: #667eea;
+            margin-top: 0;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 80px;
+            box-sizing: border-box;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 5px 5px 5px 0;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        button[onclick*="create"],
+        button[onclick*="load"],
+        button[onclick*="Dashboard"] {
+            background: #667eea;
+            color: white;
+        }
+
+        #recordBtn {
+            background: #e74c3c;
+            color: white;
+        }
+
+        #stopBtn {
+            background: #95a5a6;
+            color: white;
+        }
+
+        #submitBtn {
+            background: #27ae60;
+            color: white;
+        }
+
+        .script-item {
+            border: 2px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .script-item:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        #selectedScript {
+            padding: 15px;
+            background: #f8f9ff;
+            border-left: 4px solid #667eea;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+
+        #recordingIndicator {
+            color: #e74c3c;
+            font-weight: bold;
+            padding: 10px;
+            background: #ffe6e6;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+
+        audio {
+            width: 100%;
+            margin: 10px 0;
+        }
+
+        #loading {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        #result,
+        #dashboard {
+            margin-top: 15px;
+        }
+
+        .result-box {
+            border: 2px solid #27ae60;
+            padding: 20px;
+            border-radius: 10px;
+            background: #f0fff4;
+        }
+
+        .result-box h3 {
+            color: #27ae60;
+            margin-top: 0;
+        }
+
+        .result-box p {
+            margin: 10px 0;
+            line-height: 1.6;
+        }
+
+        .score {
+            font-size: 32px;
+            font-weight: bold;
+            color: #27ae60;
+        }
+
+        .similar-item {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            background: white;
+        }
+
+        .dashboard-box {
+            border: 2px solid #3498db;
+            padding: 20px;
+            border-radius: 10px;
+            background: #f0f8ff;
+        }
+
+        .dashboard-box h3 {
+            color: #3498db;
+            margin-top: 0;
+        }
+
+        .stat {
+            font-size: 18px;
+            margin: 10px 0;
+        }
+
+        .stat strong {
+            color: #2c3e50;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🎤 Zzawang Media - 음성 학습 평가 시스템</h1>
+
+    <div class="step" id="step1">
+        <h2>📝 1단계: 문장 등록</h2>
+        <textarea id="scriptText" placeholder="연습할 문장을 입력하세요..."></textarea><br>
+        <button onclick="createScript()">문장 등록</button>
+        <button onclick="loadScripts()">문장 불러오기</button>
+        <div id="scriptList"></div>
+    </div>
+
+    <div class="step" id="step2">
+        <h2>🎙️ 2단계: 음성 녹음</h2>
+        <div id="selectedScript">문장을 선택하세요</div>
+        <button id="recordBtn" onclick="startRecording()" disabled>녹음 시작</button>
+        <button id="stopBtn" onclick="stopRecording()" disabled>녹음 중지</button>
+        <div id="recordingIndicator" style="display:none;">🔴 녹음 중...</div>
+        <audio id="audioPlayer" controls style="display:none;"></audio>
+    </div>
+
+    <div class="step" id="step3">
+        <h2>📤 3단계: 평가</h2>
+        <button id="submitBtn" onclick="submitAudio()" disabled>평가 받기</button>
+        <div id="loading" style="display:none;">⏳ 처리 중...</div>
+        <div id="result"></div>
+    </div>
+
+    <div class="step" id="step4">
+        <h2>📊 4단계: 통계</h2>
+        <button onclick="loadDashboard()">통계 불러오기</button>
+        <div id="dashboard"></div>
+    </div>
+
+    <script>
+        let mediaRecorder;
+        let audioChunks = [];
+        let audioBlob;
+        let selectedScriptId = null;
+        let selectedScriptText = '';
+        const API_BASE = '/api/v1';
+
+        async function createScript() {
+            const text = document.getElementById('scriptText').value.trim();
+            if (!text) {
+                alert('문장을 입력해주세요');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/script`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text })
+                });
+
+                if (response.ok) {
+                    alert('문장이 등록되었습니다!');
+                    document.getElementById('scriptText').value = '';
+                    loadScripts();
+                } else {
+                    alert('등록 실패');
+                }
+            } catch (error) {
+                alert('오류: ' + error.message);
+            }
+        }
+
+        async function loadScripts() {
+            try {
+                const response = await fetch(`${API_BASE}/script`);
+                const scripts = await response.json();
+
+                const listDiv = document.getElementById('scriptList');
+                if (scripts.length === 0) {
+                    listDiv.innerHTML = '<p>등록된 문장이 없습니다</p>';
+                    return;
+                }
+
+                listDiv.innerHTML = '<h3>등록된 문장:</h3>' + scripts.map(script => `
+                    <div class="script-item" onclick="selectScript(${script.id}, '${script.text.replace(/'/g, "\\'")}')">
+                        <strong>ID ${script.id}:</strong> ${script.text}
+                    </div>
+                `).join('');
+            } catch (error) {
+                alert('문장 불러오기 실패: ' + error.message);
+            }
+        }
+
+        function selectScript(id, text) {
+            selectedScriptId = id;
+            selectedScriptText = text;
+            document.getElementById('selectedScript').innerHTML = `<strong>선택된 문장 (ID ${id}):</strong> ${text}`;
+            document.getElementById('recordBtn').disabled = false;
+            alert('문장이 선택되었습니다. 녹음을 시작하세요!');
+        }
+
+        async function startRecording() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+
+                mediaRecorder.ondataavailable = (event) => {
+                    audioChunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = () => {
+                    audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    const player = document.getElementById('audioPlayer');
+                    player.src = audioUrl;
+                    player.style.display = 'block';
+                    document.getElementById('submitBtn').disabled = false;
+                };
+
+                mediaRecorder.start();
+                document.getElementById('recordBtn').disabled = true;
+                document.getElementById('stopBtn').disabled = false;
+                document.getElementById('recordingIndicator').style.display = 'block';
+                alert('녹음이 시작되었습니다');
+            } catch (error) {
+                alert('마이크 접근 실패: ' + error.message);
+            }
+        }
+
+        function stopRecording() {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+                document.getElementById('recordBtn').disabled = false;
+                document.getElementById('stopBtn').disabled = true;
+                document.getElementById('recordingIndicator').style.display = 'none';
+                alert('녹음이 완료되었습니다');
+            }
+        }
+
+        async function submitAudio() {
+            if (!audioBlob || !selectedScriptId) {
+                alert('녹음과 문장 선택을 확인해주세요');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('script_id', selectedScriptId);
+            formData.append('audio', audioBlob, 'recording.wav');
+
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('submitBtn').disabled = true;
+
+            try {
+                const response = await fetch(`${API_BASE}/submit`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                displayResult(result);
+                alert('평가가 완료되었습니다!');
+            } catch (error) {
+                alert('평가 실패: ' + error.message);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('submitBtn').disabled = false;
+            }
+        }
+
+        function displayResult(result) {
+            const similarScriptsHtml = result.similar_scripts && result.similar_scripts.length > 0 ? `
+                <h4>🎯 추천 유사 문장:</h4>
+                ${result.similar_scripts.map(s => `
+                    <div class="similar-item">
+                        <strong>유사도: ${s.similarity_score.toFixed(1)}%</strong> - ${s.text}
+                    </div>
+                `).join('')}
+            ` : '';
+
+            document.getElementById('result').innerHTML = `
+                <div class="result-box">
+                    <h3>📊 평가 결과</h3>
+                    <p><strong>원본 문장:</strong> ${selectedScriptText}</p>
+                    <p><strong>인식된 문장:</strong> ${result.recognized_text}</p>
+                    <p><strong>정확도:</strong> <span class="score">${result.accuracy_score}점</span></p>
+                    ${result.missing_words ? `<p><strong>❌ 누락된 단어:</strong> <span style="color:#e74c3c; font-weight:bold;">${result.missing_words}</span></p>` : ''}
+                    <p><strong>💬 피드백:</strong> ${result.feedback_text}</p>
+                    ${similarScriptsHtml}
+                </div>
+            `;
+        }
+
+        async function loadDashboard() {
+            try {
+                const response = await fetch(`${API_BASE}/admin/dashboard`);
+                const data = await response.json();
+
+                const topMistakesHtml = data.top_mistakes.length > 0 ?
+                    '<ol style="padding-left: 20px;">' + data.top_mistakes.slice(0, 5).map(word => `<li style="margin: 5px 0;">${word}</li>`).join('') + '</ol>' :
+                    '<p>데이터 없음</p>';
+
+                document.getElementById('dashboard').innerHTML = `
+                    <div class="dashboard-box">
+                        <h3>📈 전체 통계</h3>
+                        <p class="stat"><strong>총 제출 수:</strong> ${data.total_submissions}건</p>
+                        <p class="stat"><strong>평균 점수:</strong> ${data.average_score.toFixed(1)}점</p>
+                        <h4 style="margin-top: 20px;">🔥 자주 틀리는 단어 TOP 5:</h4>
+                        ${topMistakesHtml}
+                    </div>
+                `;
+            } catch (error) {
+                alert('통계 불러오기 실패: ' + error.message);
+            }
+        }
+
+        window.onload = () => {
+            loadScripts();
+        };
+    </script>
+</body>
+
+</html>
