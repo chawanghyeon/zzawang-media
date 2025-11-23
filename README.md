@@ -17,10 +17,12 @@
 | 기능            | 설명 |
 |-----------------|------|
 | 문장 등록       | 학습용 문장을 서버에 등록 |
+| 문장 벡터 저장  | 등록된 문장에 대한 임베딩 벡터 생성 및 저장 |
 | 음성 제출       | 특정 문장에 대한 사용자 음성을 업로드 |
-| STT 처리        | Whisper(OpenAI) 또는 Vosk 엔진으로 음성 인식 |
+| STT 처리        | Whisper 엔진으로 음성 인식 |
 | 발음 평가       | Levenshtein 거리 기반 점수 및 누락 단어 추출 |
 | 피드백 조회     | 사용자가 제출한 결과에 대한 상세 피드백 제공 |
+| 비슷한 문장 추천 | 발음이 유사한 다른 문장 추천 |
 
 ### 관리자 기능
 
@@ -33,8 +35,10 @@
 - Python 3.12
 - FastAPI (비동기 API 서버)
 - SQLite (RDBMS)
+- Faiss (벡터 검색)
 - SQLAlchemy (ORM)
 - Whisper v3
+- google/embeddinggemma-300m
 - Docker / Docker Compose
 - Pydantic / Uvicorn
 - difflib (Levenshtein 유사도)
